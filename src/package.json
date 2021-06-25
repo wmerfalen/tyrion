@@ -1,0 +1,23 @@
+{
+  "name": "tyrion",
+  "version": "0.0.1",
+  "description": "Tyrion is a self-contained node.js bot with an emphasis on simplicity and security.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wmerfalen/tyrion.git"
+  },
+  "author": "William Merfalen",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/wmerfalen/tyrion/issues"
+  },
+  "homepage": "https://github.com/wmerfalen/tyrion#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "irc": "^0.5.2"
+  }
+}
