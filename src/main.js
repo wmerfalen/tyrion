@@ -1,11 +1,15 @@
-const url = require('./lib/url.js');
+const url = require('./lib/url.js')
 
 const settings_default = {
 	debug_notice: false,
 	debug: false,
 	testing: false
 }
-const bot = require('../.env.json');
+const bot = require('../.env.json')
+if(typeof bot === 'undefined') {
+	console.error('Invalid settings found in .env.json! Please see the README! Exiting..')
+	return
+}
 const settings = typeof bot.settings !== 'undefined' ? bot.settings : settings_default
 
 var irc = require('irc')
