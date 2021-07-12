@@ -6,25 +6,7 @@
 
 const url = require('url')
 
-const test = () => {
-	const assert = require('assert').strict
-	const tests = [
-		[1,'https://google.com'],
-		[0,'kldjfoj19i04joa90seuje.osijerio3ujkhgn--34'],
-		[0,'ftp://ftp.google.com/forge/bs'],
-		[1,'https://nodejs.org/dist/latest-v14.x/docs/api/assert.html'],
-		[0,'ssh://git@github.com/wmerfalen/slenderize'],
-	]
-
-	const pass = (should_pass, in_url) => {
-		if(should_pass){
-			assert(url.parse(in_url).protocol == 'https:')
-		}
-	}
-	tests.forEach((element) => {
-		pass(element[0],element[1])
-	})
-
+exports.extract_url = (msg) => {
+	const matched = msg.match(/(https?:\/\/(www\.)?[a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9\(\)]{1,6}\b([-a-zA-Z0-9\(\)@:%_\+.~#?&\/\/=]*))/g)
+	return url.parse(Array.isArray(matched) && 0 in matched ? matched[0] : '')
 }
-
-test()

@@ -1,4 +1,5 @@
-const url = require('./lib/url.js')
+
+const https = require('https')
 
 const settings_default = {
 	debug_notice: false,
@@ -11,9 +12,10 @@ if(typeof bot === 'undefined') {
 	return
 }
 const settings = typeof bot.settings !== 'undefined' ? bot.settings : settings_default
+const allow = typeof bot.allow !== 'undefined' ? bot.allow : null
 
-var irc = require('irc')
-var client = new irc.Client(bot.network, bot.nick, {
+const irc = require('./lib/irc.js')
+const client = new irc.Client(bot.network, bot.nick, {
     userName: bot.nick,
     realName: bot.nick,
 		nick: bot.nick,
@@ -54,7 +56,7 @@ client.addListener('notice', function (from, to, message) {
 				return
 			}
 			for(let i=0; i < bot.channels.length; i++){
-				client.join(bot.channels[i], (a,b,c) => {
+				client.join(bot.channels[i], () => {
 					console.log('joined ' + bot.channels[i])
 				})
 			}
@@ -62,36 +64,18 @@ client.addListener('notice', function (from, to, message) {
 	}
 })
 client.addListener('message', function (from, to, message) {
-	console.log(from + ' => ' + to + ': ' + message)
+	if(settings.debug){
+		console.log(JSON.stringify(['message',from,to,message]))
+	}
 })
 client.addListener('pm', function (from, message) {
-	console.log(from + ' => ME: ' + message)
+	if(settings.debug){
+		console.log(JSON.stringify(['pm',from,null,message]))
+	}
 })
 client.addListener('message#tyriontesting', function (from, message) {
-	console.log(from + ' => #tyriontesting: ' + message)
+	if(settings.debug){
+		console.log(JSON.stringify(['message#tyriontesting',from,null,message]))
+	}
 })
 
-/*
-let https = require('https');
-
-const options = {
-  hostname: 'encrypted.google.com',
-  port: 443,
-  path: '/',
-  method: 'GET'
-};
-
-const req = https.request(options, (res) => {
-  console.log('statusCode:', res.statusCode);
-  console.log('headers:', res.headers);
-
-  res.on('data', (d) => {
-    process.stdout.write(d);
-  });
-});
-
-req.on('error', (e) => {
-  console.error(e);
-});
-req.end();
-*/

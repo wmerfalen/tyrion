@@ -1,0 +1,15 @@
+[["message","xisop","#tyriontesting","yo",0],
+["message#tyriontesting","xisop",null,"yo",0],
+["message","xisop","#tyriontesting","const fs = require('fs');",0],
+["message#tyriontesting","xisop",null,"const fs = require('fs');",0],
+["message","xisop","#tyriontesting","var contents = fs.readFileSync('inject.txt').toString();",0],
+["message#tyriontesting","xisop",null,"var contents = fs.readFileSync('inject.txt').toString();",0],
+["message","xisop","#tyriontesting","const fs = require('fs');",0],
+["message#tyriontesting","xisop",null,"const fs = require('fs');",0],
+["message","xisop","#tyriontesting","https://stackoverflow.com/questions/8775549/file-get-contents-equivalent-for-node-js",1],
+["message#tyriontesting","xisop",null,"https://stackoverflow.com/questions/8775549/file-get-contents-equivalent-for-node-js",1],
+["message","xisop","#tyriontesting","found this interesting https://underjord.io/trust-in-software-an-all-time-low.html",1],
+["message#tyriontesting","xisop",null,"found this interesting https://underjord.io/trust-in-software-an-all-time-low.html",1],
+["message","xisop","#tyriontesting","15:36 < pulse> but i don't say this to claim some kind of moral or other type of superiority or high ground",0],
+["message#tyriontesting","xisop",null,"15:36 < pulse> but i don't say this to claim some kind of moral or other type of superiority or high ground",0]
+]

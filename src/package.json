@@ -15,9 +15,5 @@
   "bugs": {
     "url": "https://github.com/wmerfalen/tyrion/issues"
   },
-  "homepage": "https://github.com/wmerfalen/tyrion#readme",
-  "dependencies": {},
-  "devDependencies": {
-    "irc": "^0.5.2"
-  }
+  "homepage": "https://github.com/wmerfalen/tyrion#readme"
 }
