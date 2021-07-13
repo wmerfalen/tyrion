@@ -15,20 +15,24 @@
 
     You should have received a copy of the GNU General Public License
     along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
+		----------------------------------------------------------------------
+		This code has been heavily modified to suit my specific goals/needs for 
+		a secure and simple nodejs irc bot.
 */
 
 exports.Client = Client;
-var net  = require('net');
-var tls  = require('tls');
-var util = require('util');
-var EventEmitter = require('events').EventEmitter;
+let net  = require('net');
+let tls  = require('tls');
+let util = require('util');
+let EventEmitter = require('events').EventEmitter;
 
-var colors = require('./colors');
-var parseMessage = require('./parse_message');
+let colors = require('./colors');
+let parseMessage = require('./parse_message');
 exports.colors = colors;
-var CyclingPingTimer = require('./cycling_ping_timer.js');
+let CyclingPingTimer = require('./cycling_ping_timer.js');
 
-var lineDelimiter = new RegExp('\r\n|\r|\n')
+let lineDelimiter = new RegExp('\r\n|\r|\n')
 
 function Client(server, nick, opt) {
     var self = this;
@@ -38,7 +42,7 @@ function Client(server, nick, opt) {
         password: null,
         userName: 'nodebot',
         realName: 'nodeJS IRC client',
-        port: 6667,
+        port: 6697,
         localAddress: null,
         debug: false,
         showErrors: false,
@@ -47,13 +51,13 @@ function Client(server, nick, opt) {
         channels: [],
         retryCount: null,
         retryDelay: 2000,
-        secure: false,
+        secure: true,
         selfSigned: false,
         certExpired: false,
-        floodProtection: false,
+        floodProtection: true,
         floodProtectionDelay: 1000,
-        sasl: false,
-        stripColors: false,
+        sasl: true,
+        stripColors: true,
         channelPrefixes: '&#',
         messageSplit: 512,
         encoding: false,
@@ -142,11 +146,11 @@ function Client(server, nick, opt) {
                 break;
             case 'rpl_isupport':
                 message.args.forEach(function(arg) {
-                    var match;
+                    let match;
                     match = arg.match(/([A-Z]+)=(.*)/);
                     if (match) {
-                        var param = match[1];
-                        var value = match[2];
+                        let param = match[1];
+                        let value = match[2];
                         switch (param) {
                             case 'CHANLIMIT':
                                 value.split(',').forEach(function(val) {
@@ -156,8 +160,8 @@ function Client(server, nick, opt) {
                                 break;
                             case 'CHANMODES':
                                 value = value.split(',');
-                                var type = ['a', 'b', 'c', 'd'];
-                                for (var i = 0; i < type.length; i++) {
+                                let type = ['a', 'b', 'c', 'd'];
+                                for (let i = 0; i < type.length; i++) {
                                     self.supported.channel.modes[type[i]] += value[i];
                                 }
                                 break;
@@ -264,9 +268,9 @@ function Client(server, nick, opt) {
 
                 channel = self.chanData(message.args[0]);
                 if (!channel) break;
-                var modeList = message.args[1].split('');
-                var adding = true;
-                var modeArgs = message.args.slice(2);
+                let modeList = message.args[1].split('');
+                let adding = true;
+                let modeArgs = message.args.slice(2);
                 modeList.forEach(function(mode) {
                     if (mode == '+') {
                         adding = true;
@@ -277,11 +281,11 @@ function Client(server, nick, opt) {
                         return;
                     }
 
-                    var eventName = (adding ? '+' : '-') + 'mode';
-                    var supported = self.supported.channel.modes;
-                    var modeArg;
-                    var chanModes = function(mode, param) {
-                        var arr = param && Array.isArray(param);
+                    let eventName = (adding ? '+' : '-') + 'mode';
+                    let supported = self.supported.channel.modes;
+                    let modeArg;
+                    let chanModes = function(mode, param) {
+                        let arr = param && Array.isArray(param);
                         if (adding) {
                             if (channel.mode.indexOf(mode) == -1) {
                                 channel.mode += mode;
@@ -347,7 +351,7 @@ function Client(server, nick, opt) {
 
                 // TODO better way of finding what channels a user is in?
                 Object.keys(self.chans).forEach(function(channame) {
-                    var channel = self.chans[channame];
+                    let channel = self.chans[channame];
                     channel.users[message.args[0]] = channel.users[message.nick];
                     delete channel.users[message.nick];
                     channels.push(channame);
@@ -369,10 +373,10 @@ function Client(server, nick, opt) {
                 break;
             case 'rpl_namreply':
                 channel = self.chanData(message.args[2]);
-                var users = message.args[3].trim().split(/ +/);
+                let users = message.args[3].trim().split(/ +/);
                 if (channel) {
                     users.forEach(function(user) {
-                        var match = user.match(/^(.)(.*)$/);
+                        let match = user.match(/^(.)(.*)$/);
                         if (match) {
                             if (match[1] in self.modeForPrefix) {
                                 channel.users[match[2]] = match[1];
@@ -540,7 +544,7 @@ function Client(server, nick, opt) {
                 nick = message.args[0];
                 channels = [];
                 Object.keys(self.chans).forEach(function(channame) {
-                    var channel = self.chans[channame];
+                    let channel = self.chans[channame];
                     channels.push(channame);
                     delete channel.users[nick];
                 });
@@ -586,7 +590,7 @@ function Client(server, nick, opt) {
 
                 // TODO better way of finding what channels a user is in?
                 Object.keys(self.chans).forEach(function(channame) {
-                    var channel = self.chans[channame];
+                    let channel = self.chans[channame];
                     delete channel.users[message.nick];
                     channels.push(channame);
                 });
@@ -673,7 +677,7 @@ Client.prototype.chans = {};
 Client.prototype._whoisData = {};
 
 Client.prototype.connectionTimedOut = function(conn) {
-    var self = this;
+    let self = this;
     if (conn !== self.conn) {
         // Only care about a timeout event if it came from the connection
         // that is most current.
@@ -683,9 +687,9 @@ Client.prototype.connectionTimedOut = function(conn) {
 };
 
 (function() {
-    var pingCounter = 1;
+    let pingCounter = 1;
     Client.prototype.connectionWantsPing = function(conn) {
-        var self = this;
+        let self = this;
         if (conn !== self.conn) {
             // Only care about a wantPing event if it came from the connection
             // that is most current.
@@ -696,7 +700,7 @@ Client.prototype.connectionTimedOut = function(conn) {
 }());
 
 Client.prototype.chanData = function(name, create) {
-    var key = name.toLowerCase();
+    let key = name.toLowerCase();
     if (create) {
         this.chans[key] = this.chans[key] || {
             key: key,
@@ -741,11 +745,11 @@ Client.prototype.connect = function(retryCount, callback) {
     if (typeof (callback) === 'function') {
         this.once('registered', callback);
     }
-    var self = this;
+    let self = this;
     self.chans = {};
 
     // socket opts
-    var connectionOpts = {
+    let connectionOpts = {
         host: self.opt.server,
         port: self.opt.port
     };
@@ -760,7 +764,7 @@ Client.prototype.connect = function(retryCount, callback) {
 
         if (typeof self.opt.secure == 'object') {
             // copy "secure" opts to options passed to connect()
-            for (var f in self.opt.secure) {
+            for (let f in self.opt.secure) {
                 connectionOpts[f] = self.opt.secure[f];
             }
         }
@@ -817,7 +821,7 @@ Client.prototype.connect = function(retryCount, callback) {
         self.conn.setEncoding('utf8');
     }
 
-    var buffer = new Buffer('');
+    let buffer = new Buffer('');
 
     function handleData(chunk) {
         self.conn.cyclingPingTimer.notifyOfActivity();
@@ -828,7 +832,7 @@ Client.prototype.connect = function(retryCount, callback) {
             buffer = Buffer.concat([buffer, chunk]);
         }
 
-        var lines = self.convertEncoding(buffer).toString().split(lineDelimiter);
+        let lines = self.convertEncoding(buffer).toString().split(lineDelimiter);
 
         if (lines.pop()) {
             // if buffer is not ended with \r\n, there's more chunks.
@@ -840,7 +844,7 @@ Client.prototype.connect = function(retryCount, callback) {
 
         lines.forEach(function iterator(line) {
             if (line.length) {
-                var message = parseMessage(line, self.opt.stripColors);
+                let message = parseMessage(line, self.opt.stripColors);
 
                 try {
                     self.emit('raw', message);
@@ -903,9 +907,9 @@ Client.prototype.disconnect = function(message, callback) {
         message = undefined;
     }
     message = message || 'node-irc says goodbye';
-    var self = this;
+    let self = this;
     if (self.conn.readyState == 'open') {
-        var sendFunction;
+        let sendFunction;
         if (self.opt.floodProtection) {
             sendFunction = self._sendImmediate;
             self._clearCmdQueue();
@@ -922,7 +926,7 @@ Client.prototype.disconnect = function(message, callback) {
 };
 
 Client.prototype.send = function(command) {
-    var args = Array.prototype.slice.call(arguments);
+    let args = Array.prototype.slice.call(arguments);
 
     // Note that the command arg is included in the args array as the first element
 
@@ -940,7 +944,7 @@ Client.prototype.send = function(command) {
 
 Client.prototype.activateFloodProtection = function(interval) {
 
-    var cmdQueue = [],
+    let cmdQueue = [],
         safeInterval = interval || this.opt.floodProtectionDelay,
         self = this,
         origSend = this.send,
@@ -961,7 +965,7 @@ Client.prototype.activateFloodProtection = function(interval) {
     };
 
     dequeue = function() {
-        var args = cmdQueue.shift();
+        let args = cmdQueue.shift();
         if (args) {
             origSend.apply(self, args);
         }
@@ -973,7 +977,7 @@ Client.prototype.activateFloodProtection = function(interval) {
 };
 
 Client.prototype.join = function(channel, callback) {
-    var channelName =  channel.split(' ')[0];
+    let channelName =  channel.split(' ')[0];
     this.once('join' + channelName, function() {
         // if join is successful, add this channel to opts.channels
         // so that it will be re-joined upon reconnect (as channels
@@ -1012,7 +1016,7 @@ Client.prototype.part = function(channel, message, callback) {
 };
 
 Client.prototype.action = function(channel, text) {
-    var self = this;
+    let self = this;
     if (typeof text !== 'undefined') {
         text.toString().split(/\r?\n/).filter(function(line) {
             return line.length > 0;
@@ -1031,15 +1035,15 @@ Client.prototype._splitLongLines = function(words, maxLength, destination) {
         destination.push(words);
         return destination;
     }
-    var c = words[maxLength];
-    var cutPos;
-    var wsLength = 1;
+    let c = words[maxLength];
+    let cutPos;
+    let wsLength = 1;
     if (c.match(/\s/)) {
         cutPos = maxLength;
     } else {
-        var offset = 1;
+        let offset = 1;
         while ((maxLength - offset) > 0) {
-            var c = words[maxLength - offset];
+            let c = words[maxLength - offset];
             if (c.match(/\s/)) {
                 cutPos = maxLength - offset;
                 break;
@@ -1051,7 +1055,7 @@ Client.prototype._splitLongLines = function(words, maxLength, destination) {
             wsLength = 0;
         }
     }
-    var part = words.substring(0, cutPos);
+    let part = words.substring(0, cutPos);
     destination.push(part);
     return this._splitLongLines(words.substring(cutPos + wsLength, words.length), maxLength, destination);
 };
@@ -1065,13 +1069,13 @@ Client.prototype.notice = function(target, text) {
 };
 
 Client.prototype._speak = function(kind, target, text) {
-    var self = this;
-    var maxLength = Math.min(this.maxLineLength - target.length, this.opt.messageSplit);
+    let self = this;
+    let maxLength = Math.min(this.maxLineLength - target.length, this.opt.messageSplit);
     if (typeof text !== 'undefined') {
         text.toString().split(/\r?\n/).filter(function(line) {
             return line.length > 0;
         }).forEach(function(line) {
-            var linesToSend = self._splitLongLines(line, maxLength, []);
+            let linesToSend = self._splitLongLines(line, maxLength, []);
             linesToSend.forEach(function(toSend) {
                 self.send(kind, target, toSend);
                 if (kind == 'PRIVMSG') {
@@ -1084,7 +1088,7 @@ Client.prototype._speak = function(kind, target, text) {
 
 Client.prototype.whois = function(nick, callback) {
     if (typeof callback === 'function') {
-        var callbackWrapper = function(info) {
+        let callbackWrapper = function(info) {
             if (info.nick.toLowerCase() == nick.toLowerCase()) {
                 this.removeListener('whois', callbackWrapper);
                 return callback.apply(this, arguments);
@@ -1096,7 +1100,7 @@ Client.prototype.whois = function(nick, callback) {
 };
 
 Client.prototype.list = function() {
-    var args = Array.prototype.slice.call(arguments, 0);
+    let args = Array.prototype.slice.call(arguments, 0);
     args.unshift('LIST');
     this.send.apply(this, args);
 };
@@ -1110,7 +1114,7 @@ Client.prototype._addWhoisData = function(nick, key, value, onlyIfExists) {
 Client.prototype._clearWhoisData = function(nick) {
     // Ensure that at least the nick exists before trying to return
     this._addWhoisData(nick, 'nick', nick);
-    var data = this._whoisData[nick];
+    let data = this._whoisData[nick];
     delete this._whoisData[nick];
     return data;
 };
@@ -1118,7 +1122,7 @@ Client.prototype._clearWhoisData = function(nick) {
 Client.prototype._handleCTCP = function(from, to, text, type, message) {
     text = text.slice(1);
     text = text.slice(0, text.indexOf('\u0001'));
-    var parts = text.split(' ');
+    let parts = text.split(' ');
     this.emit('ctcp', from, to, text, type, message);
     this.emit('ctcp-' + type, from, to, text, message);
     if (type === 'privmsg' && text === 'VERSION')
@@ -1134,14 +1138,14 @@ Client.prototype.ctcp = function(to, type, text) {
 };
 
 Client.prototype.convertEncoding = function(str) {
-    var self = this, out = str;
+    let self = this, out = str;
 
     if (self.opt.encoding) {
         try {
-            var charsetDetector = require('node-icu-charset-detector');
-            var Iconv = require('iconv').Iconv;
-            var charset = charsetDetector.detectCharset(str);
-            var converter = new Iconv(charset.toString(), self.opt.encoding);
+            let charsetDetector = require('node-icu-charset-detector');
+            let Iconv = require('iconv').Iconv;
+            let charset = charsetDetector.detectCharset(str);
+            let converter = new Iconv(charset.toString(), self.opt.encoding);
 
             out = converter.convert(str);
         } catch (err) {
