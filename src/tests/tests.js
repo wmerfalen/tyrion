@@ -11,10 +11,11 @@ const extract_url = (msg) => {
 	return url.parse(Array.isArray(matched) && 0 in matched ? matched[0] : '')
 }
 
+const liburl = require('../lib/url.js')
+const assert = require('assert').strict
 const tests = {
-	run: (){
+	run: () => {
 		const test_entire_message_is_url = () => {
-			const assert = require('assert').strict
 			const tests = [
 				[1,'https://google.com'],
 				[0,'kldjfoj19i04joa90seuje.osijerio3ujkhgn--34'],
@@ -24,7 +25,7 @@ const tests = {
 			]
 
 			const pass = (should_pass, in_url) => {
-				this.log('test_entire_message_is_url',should_pass,in_url)
+				//this.log('test_entire_message_is_url',should_pass,in_url)
 				if(should_pass){
 					assert(url.parse(in_url).protocol == 'https:')
 				}else{
@@ -38,7 +39,6 @@ const tests = {
 		}
 
 		const test_url_in_message = () => {
-			const assert = require('assert').strict
 			const tests = [
 				[1,'Hey, you guys should use this search engine: https://bing.com ... NOTTTT'],
 				[0,'kldjfoj19i04joa90seuje.osijerio3ujkhgn--34 this is a bunch of rubbish'],
@@ -48,7 +48,7 @@ const tests = {
 			]
 
 			const pass = (should_pass, in_url) => {
-				this.log('test_url_in_message',should_pass,in_url)
+				//this.log('test_url_in_message',should_pass,in_url)
 				if(should_pass){
 					assert(extract_url(in_url).protocol === 'https:')
 				}else{
@@ -60,7 +60,24 @@ const tests = {
 			})
 
 		}
+		const test_is_html = async () => {
+			const tests = [
+				[0,'https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png'],
+				[1,'https://www.google.com/'],
+				[1,'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function'],
+				[1,'https://nodejs.org/api/https.html#https_https_get_options_callback'],
+			]
+			for(let data_set of tests){
+				let result = await liburl.is_html(data_set[1])
+				if(data_set[0]){
+					assert(result === true)
+				}else{
+					assert(result === false)
+				}
+			}
+		}
 
+		test_is_html()
 		test_entire_message_is_url()
 		test_url_in_message()
 	}/** end run function */

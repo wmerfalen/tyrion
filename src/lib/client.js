@@ -80,12 +80,12 @@ const event_handlers = {
 				time: Date.now()
 			})
 		}
-		if(settings.testing){
+		if(settings.testing || settings.debug){
 			console.log(event_handlers.joined_list)
 		}
 	},
 	post_auth_notice: (from, to, message) => {
-		if(settings.debug_notice){
+		if(settings.debug || settings.debug_notice){
 				console.log(from + ' => ' + to + ': ' + message)
 		}
 	},
@@ -93,7 +93,7 @@ const event_handlers = {
 		if(!('authenticated' in this)){
 			this.authenticated = false
 		}
-		if(settings.debug_notice){
+		if(settings.debug || settings.debug_notice){
 			console.log(from + ' => ' + to + ': ' + message)
 			if(from !== undefined && from.match(/^NickServ$/)){
 				console.log('NOTICE from NickServ: ',to,',',message)
@@ -127,9 +127,17 @@ const event_handlers = {
 			console.log(JSON.stringify(['message',from,to,in_message]))
 		}
 		if(to && allowed(from,to) && has_url(in_message)){
-			console.log('Allowed user has url: ',[from,to,in_message])
+			if(settings.debug){
+				console.log('Allowed user has url: ',[from,to,in_message])
+			}
 			fetch_from_message(in_message, (response) => {
+				if(settings.debug){
+					console.log(response)
+				}
 				if(response.ok && response.status_code === 200){
+					if(response.summary === null){
+						return
+					}
 					client.say(to,response.summary)
 				}
 			})

@@ -15,61 +15,100 @@ const has_url = (msg) => {
 	return extract_url(msg).protocol === 'https:'
 }
 
-const fetch_from_message = (msg, callback) => {
-	const href = extract_url(msg)
+const fetch_headers_from_url = (url) => {
 	const https = require('https')
-
-/**
-pe ".help" for more information.
-> u = require('url'); u.parse('https://google.com/foobar.php?a=1')
-Url {
-  protocol: 'https:',
-  slashes: true,
-  auth: null,
-  host: 'google.com',
-  port: null,
-  hostname: 'google.com',
-  hash: null,
-  search: '?a=1',
-  query: 'a=1',
-  pathname: '/foobar.php',
-  path: '/foobar.php?a=1',
-  href: 'https://google.com/foobar.php?a=1'
+	return new Promise((resolve, reject) => {
+			https.get(url, (res) => {
+			resolve(res.headers)
+		}).on('error', reject)
+	})
 }
->
-*/
-	const options = {
-		hostname: href.hostname,
-		port: href.port !== null ? href.port : 443,
-		path: href.path,
-		method: 'GET'
+
+const impl_is_html = async (url) => {
+	const ignore = [
+		/^image\/.*$/,
+	]
+	let headers = await fetch_headers_from_url(url)
+	if('content-type' in headers) {
+		for(let pcre of ignore) {
+			if(headers['content-type'].match(pcre)){
+				return false
+			}
+		}
+		return true
 	}
-
-	const req = https.request(options, (res) => {
-		console.log('statusCode:', res.statusCode)
-		console.log('headers:', res.headers)
-
-		let buffer = ''
-		res.on('data', (d) => {
-			buffer += d
-			process.stdout.write(d)
-		})
-		res.on('end', () => {
-			callback({ok: true,response_object: res,body: buffer,status_code: res.statusCode,headers: res.headers})
-		})
-	})
-
-	req.on('error', (e) => {
-		callback({ok: false,response_object: null,error: e})
-		console.error(e)
-	})
-	req.end()
+	return false
 }
+async function is_html(url){
+	const can_be_parsed = await impl_is_html(url)
+	return can_be_parsed
+}
+const fetch_url = async (in_url) => {
+	return new Promise((resolve, reject) => {
+		const https = require('https')
+		const url = require('url')
+		const href = url.parse(in_url)
+			const options = {
+				hostname: href.hostname,
+				port: href.port !== null ? href.port : 443,
+				path: href.path,
+				method: 'GET',
+			}
+		const trim_headers = (h) => {
+			let save = {}
+			if('location' in h){
+				save.location = h.location
+			}
+			return save
+		}
+
+		const req = https.request(options, (res) => {
+			if(res.statusCode == 301 || res.statusCode == 302){
+				reject({ok: false,'status': 'redirect', response: res})
+				return
+			}
+			let buffer = ''
+			let byte_max = 1024 * 25
+			let fetched = false
+			let byte_ctr = 0
+			res.on('data', (d) => {
+				if(byte_ctr >= byte_max){
+					return
+				}
+				buffer += d.toString()
+				byte_ctr += d.size
+			})
+			res.on('end', () => {
+				resolve({ok: true,body: Buffer(buffer).slice(0,byte_max).toString(),status_code: res.statusCode,headers: trim_headers(res.headers)})
+			})
+		})
+
+		req.on('error', (e) => {
+			reject({ok: false,status_code: res.statusCode,body: null,error: e})
+		})
+		req.end()
+	})
+}
+
+const fetch_from_message = async (msg,callback) => {
+	const href = extract_url(msg)
+	await fetch_url(href.href)
+		.then(callback)
+		.catch(async (response) => {
+			if(response['status'] === 'redirect' && 'location' in response['response'].headers){
+				await fetch_url(
+					response['response'].headers['location']
+				).then(callback).catch(callback)
+			}
+		})
+}
+
+const minimal_html_escape = html => html.replace(/&amp;/,'&')
 
 const summarize = (html) => {
 	const matched = html.match(/<title>([^<]+)<\/title>/i)
 	if(matched && matched[1]){
-		return matched[1]
+		return minimal_html_escape(matched[1])
 	}
 	return null
 }
@@ -79,3 +118,5 @@ exports.has_url = has_url
 exports.fetch_from_message = fetch_from_message
 exports.summarize = summarize
 
+exports.fetch_headers_from_url = fetch_headers_from_url
+exports.is_html = is_html
