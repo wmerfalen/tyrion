@@ -68,7 +68,7 @@ const fetch_url = async (in_url) => {
 				return
 			}
 			let buffer = ''
-			let byte_max = 1024 * 25
+			let byte_max = 1024 * 24
 			let fetched = false
 			let byte_ctr = 0
 			res.on('data', (d) => {
