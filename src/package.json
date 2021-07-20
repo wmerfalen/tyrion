@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/wmerfalen/tyrion/issues"
   },
-  "homepage": "https://github.com/wmerfalen/tyrion#readme"
+  "homepage": "https://github.com/wmerfalen/tyrion#readme",
+  "dependencies": {
+    "slate-irc": "^0.9.1",
+    "slate-irc-sasl": "^1.0.2"
+  }
 }
