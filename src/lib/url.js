@@ -12,8 +12,9 @@ const extract_url = (msg) => {
 }
 
 const has_url = (msg) => {
-	return extract_url(msg).protocol === 'https:'
+	return ['http:','https:'].indexOf(extract_url(msg).protocol) !== -1
 }
+
 
 const fetch_headers_from_url = (url) => {
 	const https = require('https')
@@ -45,12 +46,16 @@ async function is_html(url){
 }
 const fetch_url = async (in_url) => {
 	return new Promise((resolve, reject) => {
-		const https = require('https')
+		let type = 'https'
+		if(in_url.match(/^http:/i)){
+			type = 'http'
+		}
+		const lib = require(type)
 		const url = require('url')
 		const href = url.parse(in_url)
 			const options = {
 				hostname: href.hostname,
-				port: href.port !== null ? href.port : 443,
+				port: href.port !== null ? href.port : (type === 'http' ? 80 : 443),
 				path: href.path,
 				method: 'GET',
 			}
@@ -62,13 +67,13 @@ const fetch_url = async (in_url) => {
 			return save
 		}
 
-		const req = https.request(options, (res) => {
+		const req = lib.request(options, (res) => {
 			if(res.statusCode == 301 || res.statusCode == 302){
 				reject({ok: false,'status': 'redirect', response: res})
 				return
 			}
 			let buffer = ''
-			let byte_max = 1024 * 24
+			let byte_max = 1024 * 1024
 			let fetched = false
 			let byte_ctr = 0
 			res.on('data', (d) => {
@@ -84,7 +89,7 @@ const fetch_url = async (in_url) => {
 		})
 
 		req.on('error', (e) => {
-			reject({ok: false,status_code: res.statusCode,body: null,error: e})
+			reject({ok: false,status_code: 0,body: null,error: e})
 		})
 		req.end()
 	})
